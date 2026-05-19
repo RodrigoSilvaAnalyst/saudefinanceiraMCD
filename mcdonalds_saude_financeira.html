@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>McDonald's (MCD) — Saúde Financeira | Análise Fundamental</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --mcd-red:#DA291C;
+    --mcd-yellow:#FFC72C;
+    --mcd-dark:#0E0E12;
+    --mcd-panel:#16161D;
+    --mcd-panel-2:#1E1E27;
+    --mcd-border:#2A2A36;
+    --mcd-text:#EAEAF0;
+    --mcd-muted:#9A9AA8;
+    --mcd-green:#27C28A;
+    --mcd-blue:#3B82F6;
+    --mcd-orange:#FF8A00;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+    background:radial-gradient(ellipse at top,#1A1A24 0%,var(--mcd-dark) 60%);
+    color:var(--mcd-text);
+    line-height:1.55;
+    overflow-x:hidden;
+    min-height:100vh;
+  }
+  body::before{
+    content:'';position:fixed;inset:0;
+    background-image:
+      radial-gradient(circle at 20% 20%,rgba(39,194,138,0.08),transparent 40%),
+      radial-gradient(circle at 80% 70%,rgba(255,199,44,0.08),transparent 40%);
+    pointer-events:none;z-index:0;
+    animation:bgDrift 18s ease-in-out infinite alternate;
+  }
+  @keyframes bgDrift{
+    0%{transform:translate(0,0) scale(1)}
+    100%{transform:translate(-3%,2%) scale(1.05)}
+  }
+  .container{max-width:1280px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+
+  /* ANALYST BADGE */
+  .analyst-badges{
+    position:fixed;top:18px;right:18px;z-index:1000;
+    display:flex;align-items:center;gap:10px;
+  }
+  .analyst-badge{
+    display:flex;align-items:center;gap:10px;
+    background:rgba(20,20,28,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    border:1px solid var(--mcd-border);
+    padding:7px 14px 7px 7px;border-radius:999px;
+    text-decoration:none;color:var(--mcd-text);
+    transition:all 0.3s ease;
+    box-shadow:0 4px 20px rgba(0,0,0,0.4);
+  }
+  .analyst-badge:hover{
+    border-color:var(--mcd-yellow);transform:translateY(-2px);
+    box-shadow:0 8px 28px rgba(255,199,44,0.25);
+  }
+  .analyst-avatar{
+    width:34px;height:34px;border-radius:50%;
+    background:linear-gradient(135deg,var(--mcd-yellow),var(--mcd-red));
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;color:#0E0E12;font-size:0.82rem;letter-spacing:-0.02em;
+  }
+  .analyst-info{font-size:0.78rem;line-height:1.25}
+  .analyst-label{color:var(--mcd-muted);font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:600}
+  .analyst-name{color:var(--mcd-text);font-weight:700;font-size:0.85rem}
+  .linkedin-icon{width:16px;height:16px;color:var(--mcd-yellow);margin-left:2px;flex-shrink:0}
+  @media(max-width:600px){
+    .analyst-badges{top:12px;right:12px;gap:8px}
+    .analyst-badge{padding:6px 10px 6px 6px}
+    .analyst-info{display:none}
+  }
+
+  /* HERO */
+  .hero{
+    min-height:88vh;
+    display:flex;flex-direction:column;justify-content:center;align-items:center;
+    text-align:center;padding:80px 24px 60px;position:relative;
+  }
+  .pulse-ring{
+    position:relative;width:180px;height:180px;margin-bottom:24px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .pulse-ring::before,.pulse-ring::after{
+    content:'';position:absolute;inset:0;border-radius:50%;
+    border:2px solid var(--mcd-yellow);
+    animation:pulseRing 2.5s ease-out infinite;
+  }
+  .pulse-ring::after{animation-delay:1.25s}
+  @keyframes pulseRing{
+    0%{transform:scale(0.7);opacity:1}
+    100%{transform:scale(1.4);opacity:0}
+  }
+  .heart-icon{
+    width:90px;height:90px;border-radius:50%;
+    background:linear-gradient(135deg,var(--mcd-yellow),var(--mcd-red));
+    display:flex;align-items:center;justify-content:center;
+    font-size:2.6rem;
+    box-shadow:0 0 40px rgba(255,199,44,0.5);
+    animation:heartbeat 1.6s ease-in-out infinite;
+    position:relative;z-index:2;
+  }
+  @keyframes heartbeat{
+    0%,100%{transform:scale(1)}
+    25%{transform:scale(1.08)}
+    50%{transform:scale(1)}
+    75%{transform:scale(1.04)}
+  }
+  .hero h1{
+    font-size:clamp(2rem,5vw,4.2rem);
+    font-weight:900;letter-spacing:-0.02em;
+    background:linear-gradient(135deg,var(--mcd-yellow) 0%,#FFE490 50%,var(--mcd-red) 100%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    margin-bottom:16px;
+    opacity:0;transform:translateY(20px);
+    animation:fadeUp 0.9s ease-out 0.2s forwards;
+  }
+  .hero .ticker{
+    display:inline-flex;gap:14px;align-items:center;
+    background:rgba(39,194,138,0.1);border:1px solid rgba(39,194,138,0.3);
+    padding:8px 20px;border-radius:999px;
+    font-weight:600;color:var(--mcd-green);
+    margin-bottom:24px;
+    opacity:0;transform:translateY(20px);
+    animation:fadeUp 0.9s ease-out 0.4s forwards;
+  }
+  .hero .subtitle{
+    color:var(--mcd-muted);max-width:780px;font-size:1.1rem;
+    opacity:0;transform:translateY(20px);
+    animation:fadeUp 0.9s ease-out 0.6s forwards;
+  }
+  .hero-badge{
+    display:inline-block;padding:4px 12px;border-radius:6px;
+    background:var(--mcd-red);color:white;font-size:0.75rem;font-weight:700;
+    letter-spacing:0.1em;text-transform:uppercase;margin-bottom:18px;
+    opacity:0;animation:fadeUp 0.9s ease-out forwards;
+  }
+  @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+  .scroll-indicator{
+    position:absolute;bottom:30px;left:50%;transform:translateX(-50%);
+    color:var(--mcd-muted);font-size:0.85rem;
+    animation:bounce 2s infinite;
+  }
+  @keyframes bounce{
+    0%,100%{transform:translate(-50%,0)}
+    50%{transform:translate(-50%,8px)}
+  }
+
+  section{padding:80px 0;position:relative}
+  .section-tag{
+    display:inline-block;padding:6px 14px;border-radius:999px;
+    background:rgba(218,41,28,0.15);color:var(--mcd-red);
+    font-size:0.78rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;
+    margin-bottom:14px;
+  }
+  .section-title{
+    font-size:clamp(1.8rem,3.4vw,2.6rem);
+    font-weight:800;letter-spacing:-0.02em;margin-bottom:14px;
+  }
+  .section-title .accent{color:var(--mcd-yellow)}
+  .section-sub{color:var(--mcd-muted);max-width:780px;margin-bottom:48px;font-size:1.05rem}
+
+  /* HEALTH SCORE */
+  .health-grid{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;
+  }
+  .health-card{
+    background:linear-gradient(135deg,var(--mcd-panel) 0%,var(--mcd-panel-2) 100%);
+    border:1px solid var(--mcd-border);
+    padding:22px;border-radius:14px;
+    position:relative;overflow:hidden;
+    transition:all 0.3s ease;
+  }
+  .health-card:hover{transform:translateY(-3px);border-color:var(--h-color,var(--mcd-yellow))}
+  .health-card .icon-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .health-card .icon-row .ico{font-size:1.4rem}
+  .health-card .pill{
+    font-size:0.65rem;padding:3px 8px;border-radius:6px;
+    background:var(--h-bg,rgba(39,194,138,0.15));color:var(--h-color,var(--mcd-green));
+    font-weight:700;text-transform:uppercase;letter-spacing:0.06em;
+  }
+  .health-card .label{font-size:0.78rem;color:var(--mcd-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px}
+  .health-card .value{font-size:1.7rem;font-weight:800;color:var(--h-color,var(--mcd-yellow));line-height:1.1}
+  .health-card .sub{font-size:0.78rem;color:var(--mcd-muted);margin-top:6px}
+
+  /* BALANCE SHEET VISUAL */
+  .balance-layout{
+    display:grid;grid-template-columns:1.2fr 1fr;gap:30px;align-items:stretch;
+  }
+  @media(max-width:900px){.balance-layout{grid-template-columns:1fr}}
+
+  .chart-container{
+    background:var(--mcd-panel);border:1px solid var(--mcd-border);
+    padding:28px;border-radius:18px;
+    display:flex;flex-direction:column;
+  }
+  .chart-canvas-box{position:relative;height:340px;width:100%}
+
+  .equity-explainer{
+    background:linear-gradient(135deg,rgba(255,138,0,0.08),rgba(255,138,0,0.02));
+    border:1px solid rgba(255,138,0,0.3);
+    border-left:4px solid var(--mcd-orange);
+    border-radius:14px;padding:24px;
+  }
+  .equity-explainer h3{
+    font-size:1.15rem;margin-bottom:10px;color:var(--mcd-orange);
+    display:flex;align-items:center;gap:10px;
+  }
+  .equity-explainer p{font-size:0.92rem;color:var(--mcd-muted);margin-bottom:10px;line-height:1.6}
+  .equity-explainer p strong{color:var(--mcd-text)}
+  .equity-explainer .note{
+    margin-top:14px;padding:10px 12px;
+    background:rgba(0,0,0,0.25);border-radius:8px;
+    font-size:0.85rem;color:var(--mcd-text);
+  }
+  .equity-explainer .note strong{color:var(--mcd-yellow)}
+
+  /* DEBT METRICS */
+  .debt-row{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;
+  }
+  .debt-card{
+    background:var(--mcd-panel);border:1px solid var(--mcd-border);
+    border-radius:14px;padding:22px;text-align:center;
+    transition:all 0.3s ease;
+    position:relative;overflow:hidden;
+  }
+  .debt-card::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:3px;
+    background:var(--d-color,var(--mcd-yellow));
+    transform:scaleX(0);transform-origin:left;
+    transition:transform 0.5s ease;
+  }
+  .debt-card:hover{transform:translateY(-4px);border-color:var(--d-color,var(--mcd-yellow))}
+  .debt-card:hover::before{transform:scaleX(1)}
+  .debt-card .lbl{font-size:0.78rem;color:var(--mcd-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
+  .debt-card .val{font-size:2.1rem;font-weight:900;color:var(--d-color,var(--mcd-yellow));line-height:1.1;margin-bottom:6px}
+  .debt-card .desc{font-size:0.82rem;color:var(--mcd-muted)}
+  .debt-card .threshold{
+    margin-top:12px;font-size:0.7rem;color:var(--mcd-text);
+    padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;display:inline-block;
+  }
+  .debt-card .threshold.ok{color:var(--mcd-green)}
+  .debt-card .threshold.warn{color:var(--mcd-orange)}
+
+  /* CREDIT RATING */
+  .credit-row{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;
+  }
+  .credit-card{
+    background:linear-gradient(135deg,var(--mcd-panel) 0%,var(--mcd-panel-2) 100%);
+    border:1px solid var(--mcd-border);
+    border-radius:18px;padding:26px;
+    transition:all 0.3s ease;
+  }
+  .credit-card:hover{transform:translateY(-4px);border-color:var(--mcd-yellow)}
+  .credit-header{
+    display:flex;align-items:center;gap:14px;margin-bottom:18px;
+  }
+  .credit-logo{
+    width:50px;height:50px;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:0.95rem;flex-shrink:0;
+    background:var(--c-bg,#1A237E);color:#fff;
+  }
+  .credit-name{font-size:1.05rem;font-weight:800}
+  .credit-agency{font-size:0.78rem;color:var(--mcd-muted)}
+  .credit-rating{
+    font-size:3rem;font-weight:900;line-height:1;
+    background:linear-gradient(135deg,var(--mcd-yellow),var(--mcd-red));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    margin-bottom:6px;
+  }
+  .credit-grade{font-size:0.85rem;color:var(--mcd-green);font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em}
+  .credit-outlook{font-size:0.8rem;color:var(--mcd-muted)}
+  .credit-outlook .badge{
+    display:inline-block;padding:3px 10px;border-radius:6px;
+    background:var(--o-bg,rgba(39,194,138,0.15));color:var(--o-color,var(--mcd-green));
+    font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;
+    margin-left:6px;
+  }
+
+  /* CASH FLOW WATERFALL */
+  .cashflow-layout{
+    display:grid;grid-template-columns:1fr 1fr;gap:24px;
+  }
+  @media(max-width:900px){.cashflow-layout{grid-template-columns:1fr}}
+
+  .return-card{
+    background:linear-gradient(135deg,rgba(39,194,138,0.08),rgba(255,199,44,0.05));
+    border:1px solid rgba(39,194,138,0.3);
+    border-radius:18px;padding:28px;
+    display:flex;flex-direction:column;justify-content:center;
+  }
+  .return-card .ret-title{font-size:1.05rem;color:var(--mcd-green);margin-bottom:14px;font-weight:700}
+  .return-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:12px 0;border-bottom:1px dashed var(--mcd-border);
+  }
+  .return-row:last-child{border-bottom:none;padding-top:14px;font-weight:800}
+  .return-row .ret-l{color:var(--mcd-muted);font-size:0.88rem}
+  .return-row .ret-v{color:var(--mcd-yellow);font-weight:800;font-size:1.05rem}
+  .return-row.total .ret-l,.return-row.total .ret-v{color:var(--mcd-green);font-size:1.15rem}
+
+  /* PROFITABILITY */
+  .profit-grid{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;
+  }
+  .profit-card{
+    background:var(--mcd-panel);border:1px solid var(--mcd-border);
+    padding:22px;border-radius:14px;
+    transition:all 0.3s ease;position:relative;overflow:hidden;
+  }
+  .profit-card:hover{transform:translateY(-4px);border-color:var(--mcd-yellow)}
+  .profit-card .lbl{font-size:0.75rem;color:var(--mcd-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px}
+  .profit-card .val{font-size:2.2rem;font-weight:900;color:var(--mcd-yellow);line-height:1;margin-bottom:8px}
+  .profit-card .bar-bg{height:4px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;margin-top:10px}
+  .profit-card .bar-fill{height:100%;background:linear-gradient(90deg,var(--mcd-yellow),var(--mcd-red));width:0;border-radius:4px;transition:width 1.5s cubic-bezier(0.4,0,0.2,1)}
+  .profit-card .compare{font-size:0.78rem;color:var(--mcd-muted);margin-top:8px}
+  .profit-card .compare strong{color:var(--mcd-green)}
+
+  /* DIVIDEND ARISTOCRAT */
+  .aristocrat-banner{
+    background:linear-gradient(135deg,rgba(255,199,44,0.15),rgba(218,41,28,0.1));
+    border:1px solid rgba(255,199,44,0.3);
+    border-radius:20px;padding:36px;
+    display:grid;grid-template-columns:auto 1fr auto;gap:30px;align-items:center;
+  }
+  @media(max-width:768px){.aristocrat-banner{grid-template-columns:1fr;text-align:center}}
+
+  .aristocrat-num{
+    font-size:5rem;font-weight:900;line-height:1;
+    background:linear-gradient(135deg,var(--mcd-yellow),var(--mcd-red));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .aristocrat-text h3{font-size:1.4rem;margin-bottom:8px}
+  .aristocrat-text p{color:var(--mcd-muted);font-size:0.95rem}
+  .aristocrat-stats{display:flex;flex-direction:column;gap:8px}
+  .aristocrat-stats div{
+    background:rgba(0,0,0,0.3);padding:10px 16px;border-radius:10px;
+    font-size:0.85rem;color:var(--mcd-text);
+  }
+  .aristocrat-stats div strong{color:var(--mcd-yellow);font-size:1.1rem;display:block}
+
+  /* VERDICT */
+  .verdict-banner{
+    background:linear-gradient(135deg,rgba(218,41,28,0.15),rgba(255,199,44,0.1));
+    border:1px solid rgba(255,199,44,0.3);
+    border-radius:20px;padding:36px;text-align:center;
+  }
+  .verdict-banner h3{
+    font-size:clamp(1.4rem,2.6vw,2rem);margin-bottom:12px;
+    background:linear-gradient(135deg,var(--mcd-yellow),var(--mcd-red));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .verdict-banner p{color:var(--mcd-text);font-size:1.05rem;max-width:820px;margin:0 auto}
+  .scorecard-row{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:24px;
+  }
+  .score-card{
+    background:rgba(0,0,0,0.3);border-radius:12px;padding:16px;
+    border:1px solid var(--mcd-border);
+  }
+  .score-card .l{font-size:0.7rem;color:var(--mcd-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px}
+  .score-card .v{font-size:1.05rem;font-weight:800;color:var(--mcd-yellow)}
+  .score-card .stars{color:var(--mcd-yellow);font-size:1rem;margin-top:4px;letter-spacing:2px}
+
+  /* FOOTER */
+  footer{
+    margin-top:60px;padding:40px 0;
+    border-top:1px solid var(--mcd-border);text-align:center;
+    color:var(--mcd-muted);font-size:0.85rem;
+  }
+  footer a{color:var(--mcd-yellow);text-decoration:none}
+  footer a:hover{text-decoration:underline}
+
+  .reveal{opacity:0;transform:translateY(30px);transition:opacity 0.8s ease,transform 0.8s ease}
+  .reveal.visible{opacity:1;transform:translateY(0)}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+  .pulse{animation:pulse 2.5s ease-in-out infinite}
+</style>
+</head>
+<body>
+
+<!-- ANALYST BADGE -->
+<div class="analyst-badges">
+  <a class="analyst-badge" href="https://www.linkedin.com/in/rodrigo-silva-92a402334/" target="_blank" rel="noopener">
+    <div class="analyst-avatar">RS</div>
+    <div class="analyst-info">
+      <div class="analyst-label">Analista</div>
+      <div class="analyst-name">Rodrigo Silva</div>
+    </div>
+    <svg class="linkedin-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68 1.69 1.69 0 0 0-1.68-1.69 1.69 1.69 0 0 0-1.69 1.69 1.68 1.68 0 0 0 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+  </a>
+  <a class="analyst-badge" href="https://www.linkedin.com/company/asclub/?viewAsMember=true" target="_blank" rel="noopener">
+    <div class="analyst-avatar">AS</div>
+    <div class="analyst-info">
+      <div class="analyst-label">Comunidade</div>
+      <div class="analyst-name">ASCLUB</div>
+    </div>
+    <svg class="linkedin-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68 1.69 1.69 0 0 0-1.68-1.69 1.69 1.69 0 0 0-1.69 1.69 1.68 1.68 0 0 0 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+  </a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <span class="hero-badge pulse">Análise Fundamental · NYSE: MCD · Saúde Financeira</span>
+  <div class="pulse-ring">
+    <div class="heart-icon">♥</div>
+  </div>
+  <h1>Saúde Financeira<br>McDonald's Corporation</h1>
+  <span class="ticker">
+    <span style="width:8px;height:8px;border-radius:50%;background:var(--mcd-green);box-shadow:0 0 8px var(--mcd-green)"></span>
+    Investment Grade · Baa1 / BBB+ · 49 anos de aumentos de dividendo · FCF $7.2B
+  </span>
+  <p class="subtitle">Diagnóstico financeiro com foco no balanço, na geração de cash-flow, no nível de endividamento e na política de retorno ao acionista. Inclui explicação técnica do equity negativo — uma particularidade que desconcerta análises superficiais.</p>
+  <div class="scroll-indicator">↓ Scroll</div>
+</section>
+
+<!-- 1. SCORECARD -->
+<section>
+  <div class="container">
+    <span class="section-tag">01 · Scorecard</span>
+    <h2 class="section-title">Diagnóstico em <span class="accent">12 indicadores</span></h2>
+    <p class="section-sub">Visão de cabeçalho dos principais sinais de saúde financeira da McDonald's no encerramento do exercício de 2025.</p>
+
+    <div class="health-grid">
+      <div class="health-card reveal" style="--h-color:var(--mcd-green);--h-bg:rgba(39,194,138,0.15)">
+        <div class="icon-row"><span class="ico">📊</span><span class="pill">Forte</span></div>
+        <div class="label">Receita FY 2025</div>
+        <div class="value">$26.9B</div>
+        <div class="sub">+4% YoY</div>
+      </div>
+      <div class="health-card reveal" style="--h-color:var(--mcd-green);--h-bg:rgba(39,194,138,0.15)">
+        <div class="icon-row"><span class="ico">💵</span><span class="pill">Forte</span></div>
+        <div class="label">Net Income</div>
+        <div class="value">$8.56B</div>
+        <div class="sub">Margem 31.85%</div>
+      </div>
+      <div class="health-card reveal" style="--h-color:var(--mcd-green);--h-bg:rgba(39,194,138,0.15)">
+        <div class="icon-row"><span class="ico">⚙</span><span class="pill">Líder</span></div>
+        <div class="label">Margem operacional</div>
+        <div class="value">46.1%</div>
+        <div class="sub">Top do setor QSR</div>
+      </div>
+      <div class="health-card reveal" style="--h-color:var(--mcd-green);--h-bg:rgba(39,194,138,0.15)">
+        <div class="icon-row"><span class="ico">💧</span><span class="pill">Forte</span></div>
+        <div class="label">Free Cash Flow</div>
+        <div class="value">$7.2B</div>
+        <div class="sub">+7.7% YoY</div>
+      </div>
+      <div class="health-card reveal" style="--h-color:var(--mcd-yellow);--h-bg:rgba(255,199,44,0.15)">
+        <div class="icon-row"><span class="ico">🏦</span><span class="pill">Atenção</span></div>
+        <div class="label">Total Debt</div>
+        <div class="value">$40.0B</div>
+        <div class="sub">Long-term ~$40B</div>
+      </div>
+      <div class="health-card reveal" style="--h-color:var(--mcd-green);--h-bg:rgba(39,194,138,0.15)">
+        <div class="icon-row"><span class="ico">🎯</span><span class="pill">Saudável</span></div>
+        <div class="label">Debt / EBITDA</div>
+        <div class="value">~2.8x</div>
+        <div class="sub">Threshold 4.0x</div>
+      </div>
+      <div class="health-card reveal" style="--h-color:var(--mcd-green);--h-bg:rgba(39,194,138,0.15)">
+        <div class="icon-row"><span class="ico">📈</span><span class="pill">Forte</span></div>
+        <div class="label">ROIC</div>
+        <div class="value">17.5%</div>
+        <div class="sub">+11.9 pp vs WACC</div>
+      </div>
+      <div class="health-card reveal" style="--h-color:var(--mcd-green);--h-bg:rgba(39,194,138,0.15)">
+        <div class="icon-row"><span class="ico">🎯</span><span class="pill">Confortável</span></div>
+        <div class="label">Interest Coverage</div>
+        <div class="value">~8.8x</div>
+        <div class="sub">EBIT / Despesas juros</div>
+      </div>
+      <div class="health-card reveal" style="--h-color:var(--mcd-green);--h-bg:rgba(39,194,138,0.15)">
+        <div class="icon-row"><span class="ico">🏛</span><span class="pill">Investment Grade</span></div>
+        <div class="label">Credit Rating</div>
+        <div class="value" style="font-size:1.4rem">Baa1 / BBB+</div>
+        <div class="sub">Moody's / S&amp;P</div>
+      </div>
+      <div class="health-card reveal" style="--h-color:var(--mcd-green);--h-bg:rgba(39,194,138,0.15)">
+        <div class="icon-row"><span class="ico">💰</span><span class="pill">Aristocrat</span></div>
+        <div class="label">Dividendo / ação</div>
+        <div class="value">$7.44</div>
+        <div class="sub">Yield ~2.43%</div>
+      </div>
+      <div class="health-card reveal" style="--h-color:var(--mcd-green);--h-bg:rgba(39,194,138,0.15)">
+        <div class="icon-row"><span class="ico">📤</span><span class="pill">Sustentável</span></div>
+        <div class="label">Payout Ratio</div>
+        <div class="value">~62%</div>
+        <div class="sub">FCF cobre confortavelmente</div>
+      </div>
+      <div class="health-card reveal" style="--h-color:var(--mcd-orange);--h-bg:rgba(255,138,0,0.15)">
+        <div class="icon-row"><span class="ico">⚠</span><span class="pill">Particularidade</span></div>
+        <div class="label">Stockholders Equity</div>
+        <div class="value">-$1.8B</div>
+        <div class="sub">Por buybacks (ver §3)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. INCOME EVOLUTION -->
+<section>
+  <div class="container">
+    <span class="section-tag">02 · Demonstração de Resultados</span>
+    <h2 class="section-title">Trajetória de <span class="accent">receita e lucro</span> (5 anos)</h2>
+    <p class="section-sub">Histórico dos últimos cinco anos para detectar tendências de receita, resultado operacional e net income. Permite avaliar consistência e resiliência.</p>
+
+    <div class="chart-container reveal" style="margin-bottom:24px">
+      <div class="chart-canvas-box" style="height:380px"><canvas id="incomeChart"></canvas></div>
+    </div>
+
+    <div class="profit-grid">
+      <div class="profit-card reveal">
+        <div class="lbl">Margem bruta estimada</div>
+        <div class="val">~57%</div>
+        <div class="bar-bg"><div class="bar-fill" data-w="57"></div></div>
+        <div class="compare">Vs setor QSR <strong>~30-40%</strong></div>
+      </div>
+      <div class="profit-card reveal">
+        <div class="lbl">Margem operacional</div>
+        <div class="val">46.1%</div>
+        <div class="bar-bg"><div class="bar-fill" data-w="46"></div></div>
+        <div class="compare">Vs setor QSR <strong>~15-20%</strong></div>
+      </div>
+      <div class="profit-card reveal">
+        <div class="lbl">Margem líquida</div>
+        <div class="val">31.9%</div>
+        <div class="bar-bg"><div class="bar-fill" data-w="32"></div></div>
+        <div class="compare">Vs setor QSR <strong>~10%</strong></div>
+      </div>
+      <div class="profit-card reveal">
+        <div class="lbl">Return on Assets</div>
+        <div class="val">14.4%</div>
+        <div class="bar-bg"><div class="bar-fill" data-w="60"></div></div>
+        <div class="compare">Eficiência de capital <strong>elevada</strong></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. BALANCE SHEET & NEGATIVE EQUITY -->
+<section>
+  <div class="container">
+    <span class="section-tag">03 · Balanço</span>
+    <h2 class="section-title">Ativos, Passivos e o caso do <span class="accent">equity negativo</span></h2>
+    <p class="section-sub">Esta é a secção que costuma confundir investidores menos experientes. McDonald's apresenta capitais próprios negativos — vamos explicar porquê e o que isso significa, ou não, para a tese.</p>
+
+    <div class="balance-layout">
+      <div class="chart-container reveal">
+        <div class="chart-canvas-box"><canvas id="balanceChart"></canvas></div>
+      </div>
+
+      <div class="equity-explainer reveal">
+        <h3><span>⚠</span> Porquê equity negativo?</h3>
+        <p>Os capitais próprios da McDonald's são <strong>-$1.8 mil milhões</strong>. Isto não significa falência, perdas acumuladas ou risco de insolvência. A explicação é técnica:</p>
+        <p>Ao longo de duas décadas, a McDonald's recomprou agressivamente as suas próprias ações no mercado (programa de buybacks). Estas ações ficam registadas como <strong>treasury stock</strong> — um valor negativo no balanço.</p>
+        <p>Quando o valor cumulativo das recompras ultrapassa o valor de capital social + retained earnings, o equity total fica negativo. <strong>É uma escolha de capital allocation, não um sinal de stress.</strong></p>
+        <div class="note">
+          <strong>Consequência prática:</strong> O ROE perde significado como métrica de eficiência. Para MCD, deve usar-se ROIC (17.5%) e ROA (14.4%) — estas continuam a refletir corretamente a rentabilidade dos ativos investidos.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. ENDIVIDAMENTO -->
+<section>
+  <div class="container">
+    <span class="section-tag">04 · Endividamento</span>
+    <h2 class="section-title">$40B em dívida — <span class="accent">é demasiado?</span></h2>
+    <p class="section-sub">Dívida em valor absoluto pouco diz sem o cruzamento com geração de cash-flow. Os rácios mostram que MCD opera num nível confortável, dentro dos limites das agências de rating.</p>
+
+    <div class="debt-row">
+      <div class="debt-card reveal" style="--d-color:var(--mcd-green)">
+        <div class="lbl">Debt / EBITDA</div>
+        <div class="val">~2.8x</div>
+        <div class="desc">Total Debt sobre EBITDA</div>
+        <div class="threshold ok">✓ Threshold downgrade Moody's: 4.0x</div>
+      </div>
+      <div class="debt-card reveal" style="--d-color:var(--mcd-green)">
+        <div class="lbl">Interest Coverage</div>
+        <div class="val">~8.8x</div>
+        <div class="desc">EBIT sobre despesa de juros</div>
+        <div class="threshold ok">✓ Threshold downgrade: ~4.0x</div>
+      </div>
+      <div class="debt-card reveal" style="--d-color:var(--mcd-yellow)">
+        <div class="lbl">Total Debt</div>
+        <div class="val">$40.0B</div>
+        <div class="desc">Long-term ~$39.97B</div>
+        <div class="threshold">Maturidades distribuídas</div>
+      </div>
+      <div class="debt-card reveal" style="--d-color:var(--mcd-green)">
+        <div class="lbl">FCF / Dívida</div>
+        <div class="val">~18%</div>
+        <div class="desc">$7.2B FCF anual sobre $40B</div>
+        <div class="threshold ok">✓ Capacidade de amortização</div>
+      </div>
+    </div>
+
+    <h3 style="margin:50px 0 20px;font-size:1.4rem;color:var(--mcd-yellow)">Notação de risco — agências de rating</h3>
+    <div class="credit-row">
+      <div class="credit-card reveal">
+        <div class="credit-header">
+          <div class="credit-logo" style="--c-bg:#001A4F">M</div>
+          <div>
+            <div class="credit-name">Moody's Investors Service</div>
+            <div class="credit-agency">Última revisão: 2024 — afirmada</div>
+          </div>
+        </div>
+        <div class="credit-rating">Baa1</div>
+        <div class="credit-grade">Investment Grade · Lower Medium</div>
+        <div class="credit-outlook">Outlook <span class="badge">Stable</span></div>
+      </div>
+      <div class="credit-card reveal">
+        <div class="credit-header">
+          <div class="credit-logo" style="--c-bg:#E8112D">S</div>
+          <div>
+            <div class="credit-name">S&amp;P Global Ratings</div>
+            <div class="credit-agency">Última revisão: 2024</div>
+          </div>
+        </div>
+        <div class="credit-rating">BBB+</div>
+        <div class="credit-grade">Investment Grade · Lower Medium</div>
+        <div class="credit-outlook">Outlook <span class="badge" style="--o-bg:rgba(255,138,0,0.15);--o-color:var(--mcd-orange)">Negative</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. CASH FLOW & RETORNOS -->
+<section>
+  <div class="container">
+    <span class="section-tag">05 · Cash Flow e Retorno ao Acionista</span>
+    <h2 class="section-title">A <span class="accent">máquina de cash</span> da McDonald's</h2>
+    <p class="section-sub">A capacidade de converter receita em fluxo de caixa livre é o coração da tese fundamental. Nos últimos anos, MCD gera mais de $7B de FCF anual e devolve a quase totalidade ao acionista.</p>
+
+    <div class="cashflow-layout">
+      <div class="chart-container reveal">
+        <div class="chart-canvas-box"><canvas id="cashflowChart"></canvas></div>
+      </div>
+
+      <div class="return-card reveal">
+        <div class="ret-title">Distribuição do FCF — FY 2025</div>
+        <div class="return-row">
+          <div class="ret-l">Free Cash Flow gerado</div>
+          <div class="ret-v">$7.2B</div>
+        </div>
+        <div class="return-row">
+          <div class="ret-l">Dividendos pagos</div>
+          <div class="ret-v">~$5.0B</div>
+        </div>
+        <div class="return-row">
+          <div class="ret-l">Recompra de ações (buybacks)</div>
+          <div class="ret-v">~$2.5B</div>
+        </div>
+        <div class="return-row total">
+          <div class="ret-l">Devolvido aos acionistas</div>
+          <div class="ret-v">~$7.5B</div>
+        </div>
+        <p style="font-size:0.85rem;color:var(--mcd-muted);margin-top:14px;line-height:1.5">
+          McDonald's devolve <strong style="color:var(--mcd-yellow)">~100% do FCF</strong> aos acionistas. A dívida emitida funciona como complemento para acomodar capex de crescimento (50K lojas em 2027) sem comprometer o retorno.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. DIVIDEND ARISTOCRAT -->
+<section>
+  <div class="container">
+    <span class="section-tag">06 · Dividend Aristocrat</span>
+    <h2 class="section-title">A política de <span class="accent">dividendo</span> em destaque</h2>
+    <p class="section-sub">McDonald's tem um histórico de dividendos que coloca a empresa entre os Dividend Aristocrats — companhias do S&amp;P 500 com 25+ anos consecutivos de aumentos de dividendo.</p>
+
+    <div class="aristocrat-banner reveal">
+      <div class="aristocrat-num">49</div>
+      <div class="aristocrat-text">
+        <h3>Anos consecutivos de aumentos de dividendo</h3>
+        <p>Desde 1976, sem uma única interrupção. Atravessou seis recessões, duas crises financeiras globais, uma pandemia e múltiplas crises geopolíticas — e nunca cortou nem congelou o dividendo.</p>
+      </div>
+      <div class="aristocrat-stats">
+        <div><strong>$7.44</strong>Dividendo anual / ação</div>
+        <div><strong>~2.43%</strong>Yield atual</div>
+        <div><strong>~62%</strong>Payout ratio</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. VEREDICTO -->
+<section>
+  <div class="container">
+    <div class="verdict-banner reveal">
+      <h3>Veredicto sobre a Saúde Financeira</h3>
+      <p>O perfil financeiro da McDonald's é sólido. A empresa converte receita em cash-flow a uma taxa que poucas empresas globais conseguem replicar, mantém rácios de endividamento dentro dos limites de investment grade e devolve praticamente todo o FCF ao acionista via dividendos e buybacks. O equity negativo é uma escolha de gestão de capital, não um sinal de stress. As únicas notas de cautela são o outlook negativo da S&amp;P e a dependência de FCF estável para sustentar a política de retorno.</p>
+      <div class="scorecard-row">
+        <div class="score-card"><div class="l">Rentabilidade</div><div class="v">Excelente</div><div class="stars">★★★★★</div></div>
+        <div class="score-card"><div class="l">Liquidez</div><div class="v">Adequada</div><div class="stars">★★★★☆</div></div>
+        <div class="score-card"><div class="l">Solvência</div><div class="v">Investment Grade</div><div class="stars">★★★★☆</div></div>
+        <div class="score-card"><div class="l">Cash Generation</div><div class="v">Excelente</div><div class="stars">★★★★★</div></div>
+        <div class="score-card"><div class="l">Capital Returns</div><div class="v">Aristocrat</div><div class="stars">★★★★★</div></div>
+        <div class="score-card"><div class="l">Score Global</div><div class="v">A-</div><div class="stars">★★★★☆</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Análise de Saúde Financeira · McDonald's Corporation (NYSE: MCD) · FY 2025</p>
+    <p style="margin-top:8px">Fontes: <a href="https://corporate.mcdonalds.com/corpmcd/our-stories/article/Q4-full-year-2025-results.html" target="_blank">MCD FY 2025 Results</a> · <a href="https://www.macrotrends.net/stocks/charts/MCD/mcdonalds/free-cash-flow" target="_blank">Macrotrends FCF</a> · <a href="https://stockanalysis.com/stocks/mcd/financials/balance-sheet/" target="_blank">Stock Analysis Balance Sheet</a> · <a href="https://www.moodys.com/credit-ratings/McDonalds-Corporation-credit-rating-479500" target="_blank">Moody's Rating Report</a> · <a href="https://www.spglobal.com/ratings/en/regulatory/article/-/view/type/HTML/id/3172986" target="_blank">S&amp;P Rating</a></p>
+    <p style="margin-top:14px;color:#666">Documento de apoio à análise fundamental — não constitui recomendação de investimento.</p>
+  </div>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting){
+        e.target.classList.add('visible');
+        const fill = e.target.querySelector('.bar-fill');
+        if(fill && fill.dataset.w){
+          setTimeout(() => fill.style.width = fill.dataset.w + '%', 200);
+        }
+      }
+    });
+  },{threshold:0.15});
+
+  document.querySelectorAll('.reveal,.health-card,.profit-card,.debt-card,.credit-card,.return-card,.equity-explainer,.aristocrat-banner,.verdict-banner,.chart-container').forEach(el => {
+    el.classList.add('reveal');
+    observer.observe(el);
+  });
+
+  Chart.defaults.color = '#9A9AA8';
+  Chart.defaults.font.family = "'Inter','Segoe UI',sans-serif";
+
+  // Income statement evolution chart
+  const incomeCtx = document.getElementById('incomeChart');
+  new Chart(incomeCtx, {
+    type:'bar',
+    data:{
+      labels:['2021','2022','2023','2024','2025'],
+      datasets:[
+        {
+          label:'Receita ($B)',
+          data:[23.2,23.2,25.5,25.9,26.9],
+          backgroundColor:'rgba(255,199,44,0.85)',
+          borderColor:'#FFC72C',
+          borderWidth:2,
+          borderRadius:8,
+          yAxisID:'y'
+        },
+        {
+          label:'Operating Income ($B)',
+          data:[10.4,10.0,11.6,11.7,12.4],
+          backgroundColor:'rgba(218,41,28,0.7)',
+          borderColor:'#DA291C',
+          borderWidth:2,
+          borderRadius:8,
+          yAxisID:'y'
+        },
+        {
+          label:'Net Income ($B)',
+          data:[7.5,6.2,8.5,8.2,8.56],
+          backgroundColor:'rgba(39,194,138,0.7)',
+          borderColor:'#27C28A',
+          borderWidth:2,
+          borderRadius:8,
+          yAxisID:'y'
+        }
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom',labels:{padding:14,usePointStyle:true,pointStyle:'circle'}},
+        tooltip:{callbacks:{label:(ctx) => ctx.dataset.label + ': $' + ctx.parsed.y.toFixed(2) + 'B'}},
+        title:{display:true,text:'Receita · Resultado Operacional · Net Income (5 anos)',color:'#EAEAF0',font:{size:14,weight:'600'},padding:{bottom:18}}
+      },
+      scales:{
+        x:{grid:{display:false}},
+        y:{grid:{color:'rgba(255,255,255,0.06)'},ticks:{callback:(v) => '$' + v + 'B'}}
+      },
+      animation:{duration:1500,easing:'easeOutQuart'}
+    }
+  });
+
+  // Balance sheet doughnut (Assets vs Liabilities)
+  const balanceCtx = document.getElementById('balanceChart');
+  new Chart(balanceCtx, {
+    type:'bar',
+    data:{
+      labels:['Ativos','Passivos','Equity'],
+      datasets:[{
+        label:'$ mil milhões',
+        data:[59.5,61.3,-1.8],
+        backgroundColor:[
+          'rgba(39,194,138,0.85)',
+          'rgba(218,41,28,0.85)',
+          'rgba(255,138,0,0.85)'
+        ],
+        borderColor:['#27C28A','#DA291C','#FF8A00'],
+        borderWidth:2,
+        borderRadius:10,
+        barPercentage:0.6
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:(ctx) => '$' + ctx.parsed.y.toFixed(1) + 'B'}},
+        title:{display:true,text:'Balanço FY 2025 — Ativos vs Passivos vs Equity',color:'#EAEAF0',font:{size:14,weight:'600'},padding:{bottom:18}}
+      },
+      scales:{
+        x:{grid:{display:false}},
+        y:{grid:{color:'rgba(255,255,255,0.06)'},ticks:{callback:(v) => '$' + v + 'B'}}
+      },
+      animation:{duration:1500,easing:'easeOutQuart'}
+    }
+  });
+
+  // Cash flow chart
+  const cfCtx = document.getElementById('cashflowChart');
+  new Chart(cfCtx, {
+    type:'line',
+    data:{
+      labels:['2021','2022','2023','2024','2025'],
+      datasets:[
+        {
+          label:'Operating Cash Flow ($B)',
+          data:[8.6,9.0,9.6,9.4,10.6],
+          borderColor:'#FFC72C',
+          backgroundColor:'rgba(255,199,44,0.15)',
+          borderWidth:3,
+          tension:0.35,
+          fill:true,
+          pointRadius:5,
+          pointBackgroundColor:'#FFC72C'
+        },
+        {
+          label:'Free Cash Flow ($B)',
+          data:[6.6,7.1,7.3,6.7,7.2],
+          borderColor:'#27C28A',
+          backgroundColor:'rgba(39,194,138,0.12)',
+          borderWidth:3,
+          tension:0.35,
+          fill:true,
+          pointRadius:5,
+          pointBackgroundColor:'#27C28A'
+        },
+        {
+          label:'Capex ($B)',
+          data:[2.0,1.9,2.4,2.7,3.4],
+          borderColor:'#DA291C',
+          backgroundColor:'transparent',
+          borderWidth:2,
+          borderDash:[6,4],
+          tension:0.3,
+          pointRadius:4,
+          pointBackgroundColor:'#DA291C'
+        }
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom',labels:{padding:14,usePointStyle:true,pointStyle:'circle'}},
+        tooltip:{callbacks:{label:(ctx) => ctx.dataset.label + ': $' + ctx.parsed.y.toFixed(2) + 'B'}},
+        title:{display:true,text:'Evolução do Cash Flow (5 anos)',color:'#EAEAF0',font:{size:14,weight:'600'},padding:{bottom:18}}
+      },
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{grid:{color:'rgba(255,255,255,0.06)'},ticks:{callback:(v) => '$' + v + 'B'},beginAtZero:true}
+      },
+      animation:{duration:1500,easing:'easeOutQuart'}
+    }
+  });
+</script>
+
+</body>
+</html>
